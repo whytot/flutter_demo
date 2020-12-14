@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
+import 'home_list_manager.dart';
 import 'item/home_item.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => _HomePageVm(),
-      child: Scaffold(
-        body: _Page(),
-      ),
+    print('HomePage build');
+    return ChangeNotifierProvider<_HomePageVm>(
+      create: (BuildContext context) => _HomePageVm(),
+      builder: (BuildContext context, Widget child) {
+        print('ChangeNotifierProvider build');
+        return Scaffold(
+          body: _Page(),
+        );
+      },
     );
   }
 }
@@ -19,18 +25,31 @@ class HomePage extends StatelessWidget {
 class _Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Selector(
-      builder: (context, configs, child) {
-        return _homeList(configs);
-      },
-      selector: (context, _HomePageVm vm) {
-        return vm.items;
-      },
-      shouldRebuild:
-          (List<BaseHomeItemConfig> previous, List<BaseHomeItemConfig> next) {
-        //TODO: 这里要考虑好刷新的条件，什么条件控制整体刷新，什么条件控制单个刷新
-        return previous.length != next.length;
-      },
+    print('_Page build');
+    print('${context.toString()}');
+    return Column(
+      children: [
+        FlatButton(
+          onPressed: () => context.read<_HomePageVm>().onOtherClick(),
+          child: Selector(
+            builder: (a, b, c) => Text('$b'),
+            selector: (a, _HomePageVm b) => b.otherMessage,
+          ),
+        ),
+        Expanded(
+          child: Selector(
+            builder: (context, List<BaseHomeItemConfig> configs, child) {
+              ///这里要注意，如果这里的build触发，homeList里面的内容全部被rebuild
+              ///也就是说如果内外同时触发selector，那么里面的selector很可能响应不到
+              print('_homeList build');
+              return _homeList(context, configs);
+            },
+            selector: (context, _HomePageVm vm) {
+              return vm.items;
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -43,8 +62,9 @@ class _Page extends StatelessWidget {
   }
 
   ///TODO: 刷新和适配逻辑需要详细设计
-  Widget _homeList(configs) {
+  Widget _homeList(BuildContext context, configs) {
     return StaggeredGridView.countBuilder(
+      shrinkWrap: true,
       crossAxisCount: 2,
       itemCount: configs.length,
       crossAxisSpacing: 4,
@@ -63,7 +83,8 @@ class _Page extends StatelessWidget {
 }
 
 class _HomePageVm extends ChangeNotifier {
-  List<BaseHomeItemConfig> items = [
+  String otherMessage = '';
+  final List<BaseHomeItemConfig> items = [
     topBannerItemConfig,
     quickActionItemConfig,
     rposActionItemConfig,
@@ -79,4 +100,40 @@ class _HomePageVm extends ChangeNotifier {
     GoodsItemConfig('xcvbnm', 143),
     GoodsItemConfig('c', 134),
   ];
+  final CompositeSubscription _compositeDispose = CompositeSubscription();
+  HomeListDataManager _manager;
+
+  _HomePageVm() {
+    print('_HomePageVm init');
+    //TODO 想办法注入进来
+    _manager = HomeListDataManager();
+    _manager.subject2ListResult(_onData(), _onError()).addTo(_compositeDispose);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    print('dispose');
+    _compositeDispose.dispose();
+  }
+
+  void onOtherClick() async {
+    _manager.requestHomeList();
+  }
+
+  Function _onData() {
+    return (HomeListData data) {
+      print('_onData');
+      otherMessage = '更新时间：${data.timeStamp}';
+      notifyListeners();
+    };
+  }
+
+  Function _onError() {
+    return (error) {
+      print('_onError');
+      otherMessage = '数据异常：$error';
+      notifyListeners();
+    };
+  }
 }
