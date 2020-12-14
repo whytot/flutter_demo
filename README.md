@@ -1,4 +1,4 @@
-dart
+### dart
     https://www.dartcn.com/guides/language/language-tour
     语言规范：
         https://www.dartcn.com/guides/language/effective-dart/style
@@ -6,7 +6,7 @@ dart
             当前项目使用了google提供的一个它认为更合理的一套规范
             https://pub.flutter-io.cn/packages/pedantic
             在analysis_options.yaml中添加include: package:pedantic/analysis_options.yaml即可
-BLoC和MVVM
+### BLoC和MVVM
     二者的区别与关联：
         BLoC中V层通过event向控制层发送请求
         MVVM中V层通过VM提供的接口向控制层发送请求
@@ -17,15 +17,15 @@ BLoC和MVVM
         bloc/flutter_bloc
     还有：
         还有一些其它的模式 redux
-状态管理
+### 状态管理
     provider
     bloc/flutter_bloc：https://bloclibrary.dev/#/gettingstarted
-存储
-网络请求
-flutter-原生交互
-需要的UI组件
+### 存储
+### 网络请求
+### flutter-原生交互
+### 需要的UI组件
     瀑布流：flutter_staggered_grid_view，开发者很久没有更新了
     图片加载
-依赖注入
+### 依赖注入
     状态管理框架的lib都可以实现依赖注入，目前mark写的base项目用的是dartin(一个在provider基础上实现的lib)
-单元测试
+### 单元测试
