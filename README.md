@@ -19,7 +19,7 @@
     bloc/flutter_bloc
     原生Stream
 ### V与控制层交互
-    主要分析BLoC和MVVM，二者的区别与关联：
+    BLoC和MVVM两种模式，二者的区别与关联：
         BLoC中V层通过event向控制层发送请求
         MVVM中V层通过VM提供的接口向控制层发送请求
         二者的控制层都通过state更新V层
@@ -34,9 +34,7 @@
 ### 存储
 ### 网络请求
 ### flutter-原生交互
-### 需要的UI组件
+### UI
     瀑布流：flutter_staggered_grid_view，开发者很久没有更新了
     图片加载
-### 依赖注入
-    状态管理框架的lib都可以实现依赖注入，目前mark写的base项目用的是dartin(一个在provider基础上实现的lib)
 ### 单元测试
