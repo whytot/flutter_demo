@@ -1,5 +1,5 @@
 ## 基础部分
-### dart
+### dart(TODO)
     https://www.dartcn.com/guides/language/language-tour
     语言规范：
         https://www.dartcn.com/guides/language/effective-dart/style
@@ -13,7 +13,7 @@
     bloc/flutter_bloc：https://bloclibrary.dev/#/gettingstarted
     
 ## 其它 
-### 控制层与model交互
+### 控制层与model交互(TODO)
     rxdart
     provider
     bloc/flutter_bloc
@@ -31,10 +31,10 @@
         还有一些其它的模式 redux
 ### 依赖注入
     状态管理框架的lib都可以实现依赖注入，目前mark写的base项目用的是dartin(一个在provider基础上实现的lib)
-### 存储
-### 网络请求
-### flutter-原生交互
-### UI
+### 存储(TODO)
+### 网络请求(TODO)
+### flutter-原生交互(TODO)
+### UI(TODO)
     瀑布流：flutter_staggered_grid_view，开发者很久没有更新了
-    图片加载
-### 单元测试
+    图片加载(TODO)
+### 单元测试(TODO)
