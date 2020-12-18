@@ -3,15 +3,18 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
+import 'HomeDataVo.dart';
 import 'home_list_manager.dart';
-import 'item/home_item.dart';
+import 'item/GoodsItemConfig.dart';
+import 'item/itemConfigs.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('HomePage build');
     return ChangeNotifierProvider<_HomePageVm>(
-      create: (BuildContext context) => _HomePageVm(),
+      create: (BuildContext context) =>
+          _HomePageVm(context.read<HomeListDataManager>()),
       builder: (BuildContext context, Widget child) {
         print('ChangeNotifierProvider build');
         return Scaffold(
@@ -32,20 +35,21 @@ class _Page extends StatelessWidget {
         FlatButton(
           onPressed: () => context.read<_HomePageVm>().onOtherClick(),
           child: Selector(
-            builder: (a, b, c) => Text('$b'),
-            selector: (a, _HomePageVm b) => b.otherMessage,
+            builder: (BuildContext context, String b, Widget c) => Text('$b'),
+            selector: (BuildContext context, _HomePageVm b) => b.otherMessage,
           ),
         ),
         Expanded(
           child: Selector(
-            builder: (context, List<BaseHomeItemConfig> configs, child) {
-              ///这里要注意，如果这里的build触发，homeList里面的内容全部被rebuild
-              ///也就是说如果内外同时触发selector，那么里面的selector很可能响应不到
+            builder: (context, List<BaseItemConfig> configs, child) {
               print('_homeList build');
               return _homeList(context, configs);
             },
             selector: (context, _HomePageVm vm) {
               return vm.items;
+            },
+            shouldRebuild: (List<BaseItemConfig> a, List<BaseItemConfig> b) {
+              return a.length != b.length;
             },
           ),
         ),
@@ -61,8 +65,16 @@ class _Page extends StatelessWidget {
     }
   }
 
-  ///TODO: 刷新和适配逻辑需要详细设计
-  Widget _homeList(BuildContext context, configs) {
+  bool _wholeLine(BaseItemConfig config) {
+    return !(config is GoodsItemConfig);
+  }
+
+  double _itemWidth(BuildContext context, BaseItemConfig config) {
+    final size = MediaQuery.of(context).size;
+    return size.width / (_wholeLine(config) ? 1 : 2);
+  }
+
+  Widget _homeList(BuildContext context, List<BaseItemConfig> configs) {
     return StaggeredGridView.countBuilder(
       shrinkWrap: true,
       crossAxisCount: 2,
@@ -70,43 +82,24 @@ class _Page extends StatelessWidget {
       crossAxisSpacing: 4,
       mainAxisSpacing: 2,
       itemBuilder: (context, index) {
-        return Container(
-          height: configs[index].height,
-          color: Colors.white,
-          child: Text('${configs[index].name}'),
-        );
+        var itemConfig = configs[index];
+        return itemConfig.build(context,
+            containerWidth: _itemWidth(context, itemConfig));
       },
       staggeredTileBuilder: (index) =>
-          _tileBuilder(index, configs[index].wholeLine),
+          _tileBuilder(index, _wholeLine(configs[index])),
     );
   }
 }
 
 class _HomePageVm extends ChangeNotifier {
-  String otherMessage = '';
-  final List<BaseHomeItemConfig> items = [
-    topBannerItemConfig,
-    quickActionItemConfig,
-    rposActionItemConfig,
-    hcpActionItemConfig,
-    GoodsItemConfig('qwe', 151),
-    GoodsItemConfig('sdf', 124),
-    GoodsItemConfig('xcvb', 145),
-    GoodsItemConfig('gyuiutygjfh', 122),
-    GoodsItemConfig('zcz', 147),
-    GoodsItemConfig('a', 135),
-    GoodsItemConfig('uuu', 173),
-    GoodsItemConfig('qiioowe', 119),
-    GoodsItemConfig('xcvbnm', 143),
-    GoodsItemConfig('c', 134),
-  ];
+  String otherMessage = '点我点我点我点我点我点我';
+  List<BaseItemConfig> items = [];
   final CompositeSubscription _compositeDispose = CompositeSubscription();
   HomeListDataManager _manager;
 
-  _HomePageVm() {
+  _HomePageVm(this._manager) {
     print('_HomePageVm init');
-    //TODO 想办法注入进来
-    _manager = HomeListDataManager();
     _manager.subject2ListResult(_onData(), _onError()).addTo(_compositeDispose);
   }
 
@@ -117,14 +110,15 @@ class _HomePageVm extends ChangeNotifier {
     _compositeDispose.dispose();
   }
 
-  void onOtherClick() async {
+  void onOtherClick() {
     _manager.requestHomeList();
   }
 
   Function _onData() {
-    return (HomeListData data) {
+    return (HomeDataVo data) {
       print('_onData');
       otherMessage = '更新时间：${data.timeStamp}';
+      items = data.dataList;
       notifyListeners();
     };
   }
